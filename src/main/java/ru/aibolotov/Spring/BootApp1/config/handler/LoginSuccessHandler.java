@@ -52,7 +52,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         if (isADMIN) {
-            return "/list";
+            return "/mainPage";
         } else if (isUSER) {
             return "/userdata";
         } else {

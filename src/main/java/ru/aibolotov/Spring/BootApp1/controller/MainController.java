@@ -33,7 +33,7 @@ public class MainController {
     @GetMapping("/index")
     public String index(@RequestParam(name = "name", required = false, defaultValue = "World") String name, Model model) {
         model.addAttribute("name");
-        return "index";
+        return "/login";
     }
 
     @RequestMapping(value = USER_LIST)
@@ -58,15 +58,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "/saveUser")
-    public String saveUser(@RequestParam("id") Long id, @RequestParam("name") String name, @RequestParam("password") String password, @RequestParam("roles") Set<Role> role) {
-//        Set<Role> roleSet = new HashSet<>();
-//        for (int i = 0; i < size-1; i++) {
-//            roleSet.add(roleRepository.findAllByRole(role[i]));
-//        }
-
-//        for (String roleName : role) {
-//            roleSet.add(roleRepository.findAllByRole(roleName));
-//        }
+    public String saveUser( @RequestParam("name") String name, @RequestParam("password") String password, @RequestParam("roles") Set<Role> role) {
         if (userRepository.findAllByName(name) != null) {
             User user = userRepository.findAllByName(name);
             user.setName(name);
@@ -77,13 +69,13 @@ public class MainController {
             User user = new User(name, password, role);
             userRepository.save(user);
         }
-        return "redirect:/list";
+        return "redirect:/mainPage";
     }
 
     @RequestMapping(value = "/delete")
     public String delete(@RequestParam("userId") long id, Model model) {
         userRepository.deleteById(id);
-        return "redirect:/list";
+        return "redirect:/mainPage";
     }
 
     @RequestMapping(value = "/addUser")
@@ -109,5 +101,31 @@ public class MainController {
         User user = userRepository.findAllByName(auth.getName());
         model.addAttribute("user", user);
         return USER_DATA;
+    }
+
+    @RequestMapping(value = "/login")
+    public String getLoginPage(Model model) {
+        return "/login";
+    }
+    @RequestMapping(value = "/mainPage")
+    public String getMainPage(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findAllByName(auth.getName());
+        Set<Role> userRoles = new HashSet<>(roleRepository.findAll());
+        int i = userRepository.findAll().size();
+        User saveUser = new User();
+        saveUser.setId((long) (i-1));
+        saveUser.setName("");
+        saveUser.setPassword("");
+        saveUser.setRoles(userRoles);
+
+
+        model.addAttribute("userAuth", user);
+        model.addAttribute("userList", userRepository.findAll());
+        model.addAttribute("saveUser", saveUser);
+        model.addAttribute("roles", userRoles);
+
+
+        return "/mainPage";
     }
 }
